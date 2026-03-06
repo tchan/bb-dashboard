@@ -308,7 +308,13 @@
       "notes": []
     }
   ],
-  "tasks": [],
+  "tasks": [
+    { "text": "Read shared/URGENT-READ.md and shared/lessons-learned.md (strategic section). Apply new rules to all active targets.", "machine": "b", "priority": "urgent", "done": false, "date": "2026-03-07" },
+    { "text": "Update status.json (stale since Mar 3). Review all submitted findings against new 'impact first' rules.", "machine": "b", "priority": "urgent", "done": false, "date": "2026-03-07" },
+    { "text": "Apply two-account IDOR testing to DPG Media, Indeed, REA targets.", "machine": "b", "priority": "normal", "done": false, "date": "2026-03-07" },
+    { "text": "Deep ClassDojo IDOR testing - cross-boundary access between teacher A and B, parent IDOR, message threads.", "machine": "a", "priority": "urgent", "done": false, "date": "2026-03-07" },
+    { "text": "Read disclosed ClassDojo reports on Bugcrowd before testing.", "machine": "a", "priority": "normal", "done": false, "date": "2026-03-07" }
+  ],
   "lessons": [
     "Every report failed. ~24 reports across 8+ programs, 0 accepted. Optimized for quantity of surface-level findings instead of depth of exploitation.",
     "PROVE exploitation end-to-end. 'I found creds' is not enough - test them against live systems.",
