@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero - Bug Bounty Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --red: #f85149;
+    --orange: #d29922;
+    --purple: #bc8cff;
+    --pink: #f778ba;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; }
+  
+  .header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .header h1 { font-size: 28px; font-weight: 600; }
+  .header .subtitle { color: var(--text-dim); font-size: 14px; }
+  .header .logo { font-size: 36px; }
+  
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .stat-card .label { color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .stat-card .value { font-size: 32px; font-weight: 700; }
+  .stat-card .value.green { color: var(--green); }
+  .stat-card .value.red { color: var(--red); }
+  .stat-card .value.orange { color: var(--orange); }
+  .stat-card .value.accent { color: var(--accent); }
+  .stat-card .value.purple { color: var(--purple); }
+  
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .icon { font-size: 18px; }
+  
+  .full-width { grid-column: 1 / -1; }
+  
+  /* Report table */
+  .report-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .report-table th { text-align: left; color: var(--text-dim); font-weight: 500; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .report-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .report-table tr:last-child td { border-bottom: none; }
+  .report-table tr:hover { background: var(--surface2); }
+  
+  /* Badges */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge.p1 { background: rgba(248,81,73,0.2); color: var(--red); }
+  .badge.p2 { background: rgba(210,153,34,0.2); color: var(--orange); }
+  .badge.p3 { background: rgba(88,166,255,0.2); color: var(--accent); }
+  .badge.p4 { background: rgba(139,148,158,0.2); color: var(--text-dim); }
+  .badge.p5 { background: rgba(139,148,158,0.15); color: #6e7681; }
+  
+  .status { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+  .status .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .status .dot.rejected { background: var(--red); }
+  .status .dot.pending { background: var(--orange); }
+  .status .dot.submitted { background: var(--accent); }
+  .status .dot.drafting { background: var(--purple); }
+  .status .dot.active { background: var(--green); }
+  
+  /* Tier badges */
+  .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .tier.t0 { background: rgba(248,81,73,0.2); color: var(--red); }
+  .tier.t1 { background: rgba(210,153,34,0.2); color: var(--orange); }
+  .tier.t2 { background: rgba(88,166,255,0.2); color: var(--accent); }
+  
+  /* Timeline */
+  .timeline { list-style: none; }
+  .timeline li { position: relative; padding: 0 0 20px 24px; }
+  .timeline li:before { content: ''; position: absolute; left: 4px; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .timeline li:after { content: ''; position: absolute; left: 7px; top: 20px; width: 2px; height: calc(100% - 16px); background: var(--border); }
+  .timeline li:last-child:after { display: none; }
+  .timeline .date { color: var(--text-dim); font-size: 11px; display: block; margin-bottom: 4px; }
+  .timeline .event { font-size: 13px; line-height: 1.4; }
+  .timeline li.highlight:before { background: var(--green); box-shadow: 0 0 8px rgba(63,185,80,0.4); }
+  .timeline li.warn:before { background: var(--orange); }
+  .timeline li.bad:before { background: var(--red); }
+  
+  /* Target list */
+  .target-list { list-style: none; }
+  .target-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .target-list li:last-child { border-bottom: none; }
+  .target-name { font-weight: 500; }
+  .target-meta { color: var(--text-dim); font-size: 12px; }
+  
+  /* Findings highlight */
+  .finding-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .finding-card:last-child { margin-bottom: 0; }
+  .finding-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .finding-card p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .finding-card .meta { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+  /* Lesson cards */
+  .lesson { background: rgba(248,81,73,0.05); border-left: 3px solid var(--red); padding: 12px 16px; margin-bottom: 8px; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.5; }
+  .lesson strong { color: var(--red); }
+
+  /* Nav tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab { padding: 8px 16px; background: none; border: none; color: var(--text-dim); font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .payout-est { color: var(--green); font-size: 12px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="logo">⊘</span>
+  <div>
+    <h1>Bug Bounty Dashboard</h1>
+    <div class="subtitle">Zero + Tchan - Active Hunting</div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="label">Total Reports</div>
+    <div class="value accent">24+</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Accepted</div>
+    <div class="value red">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">In Triage</div>
+    <div class="value orange">3</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Active Programs</div>
+    <div class="value purple">4</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Strong Leads</div>
+    <div class="value green">2</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Potential Payout</div>
+    <div class="value green">$5k-$15k</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('overview')">Overview</button>
+  <button class="tab" onclick="showTab('reports')">All Reports</button>
+  <button class="tab" onclick="showTab('timeline')">Timeline</button>
+  <button class="tab" onclick="showTab('lessons')">Lessons Learned</button>
+</div>
+
+<!-- TAB: Overview -->
+<div id="overview" class="tab-content active">
+  <div class="grid">
+    <!-- Strong Findings -->
+    <div class="card full-width">
+      <h2><span class="icon">🎯</span> Strongest Current Findings</h2>
+      <div class="finding-card">
+        <h3>identity.monash.edu - SSPR Brute Force (Account Takeover)</h3>
+        <p>Self-Service Password Reset requires only email + last 3 digits of mobile. Only 1000 combinations (000-999), no rate limiting, no CAPTCHA. Brute-forceable in ~4 minutes. Full ATO of any Monash user with SSPR enabled - controls SSO for LMS, email, all university services.</p>
+        <div class="meta">
+          <span class="badge p1">P1-P2</span>
+          <span class="tier t0">Tier 0</span>
+          <span class="status"><span class="dot drafting"></span> Needs proof with valid SSPR user</span>
+          <span class="payout-est">$5,000-$10,000</span>
+        </div>
+      </div>
+      <div class="finding-card">
+        <h3>xnat-dev.erc.monash.edu - Django DEBUG + No Rate Limiting</h3>
+        <p>Django DEBUG=True exposes all 42 URL patterns. Admin login and daemon API accept unlimited auth attempts - 410 consecutive failures with zero blocking, flat ~450ms timing. Registration broken (SSL cert mismatch: find.gfo.rocks).</p>
+        <div class="meta">
+          <span class="badge p2">P2-P3</span>
+          <span class="tier t1">Tier 1</span>
+          <span class="status"><span class="dot pending"></span> Triager reviewing 400+ attempt proof</span>
+          <span class="payout-est">$500-$2,500</span>
+        </div>
+      </div>
+      <div class="finding-card">
+        <h3>shop.monash.edu - Stored XSS via Billing Address API</h3>
+        <p>Guest cart billing address REST API stores raw HTML in firstname/lastname/street/city without sanitization. Frontend validates but API does not. Blind XSS payload fires when admin views order.</p>
+        <div class="meta">
+          <span class="badge p2">P2-P3</span>
+          <span class="tier t2">Tier 2</span>
+          <span class="status"><span class="dot drafting"></span> Report ready - XSS may be excluded by program</span>
+          <span class="payout-est">$500-$1,500 (if accepted)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Programs -->
+    <div class="card">
+      <h2><span class="icon">🏢</span> Active Programs</h2>
+      <ul class="target-list">
+        <li>
+          <div>
+            <div class="target-name">Monash University</div>
+            <div class="target-meta">Bugcrowd VDP - Tier 0/1/2</div>
+          </div>
+          <span class="status"><span class="dot active"></span> Primary focus</span>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">Optus</div>
+            <div class="target-meta">Bugcrowd - 2x promo ends Mar 23</div>
+          </div>
+          <span class="status"><span class="dot rejected"></span> Blocked (Akamai)</span>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">Veriff</div>
+            <div class="target-meta">Intigriti - Session oracle</div>
+          </div>
+          <span class="status"><span class="dot submitted"></span> Awaiting triage</span>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">SilverGoldBull</div>
+            <div class="target-meta">Direct - Swagger exposure</div>
+          </div>
+          <span class="status"><span class="dot drafting"></span> Report drafted</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Monash Targets -->
+    <div class="card">
+      <h2><span class="icon">🎓</span> Monash Target Map</h2>
+      <ul class="target-list">
+        <li>
+          <div>
+            <div class="target-name">identity.monash.edu</div>
+            <div class="target-meta">SSPR + MFA management</div>
+          </div>
+          <div><span class="tier t0">T0</span> <span class="status"><span class="dot active"></span></span></div>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">shop.monash.edu</div>
+            <div class="target-meta">Magento 2, Stored XSS</div>
+          </div>
+          <div><span class="tier t2">T2</span> <span class="status"><span class="dot active"></span></span></div>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">xnat-dev.erc.monash.edu</div>
+            <div class="target-meta">Django DEBUG, brute force</div>
+          </div>
+          <div><span class="tier t1">T1</span> <span class="status"><span class="dot pending"></span></span></div>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">gitlab.erc.monash.edu</div>
+            <div class="target-meta">Open reg, leaked creds</div>
+          </div>
+          <div><span class="tier t1">T1</span> <span class="status"><span class="dot submitted"></span></span></div>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">xnat.monash.edu</div>
+            <div class="target-meta">Open reg, CVE-2024-27889/90</div>
+          </div>
+          <div><span class="tier t1">T1</span> <span class="status"><span class="dot submitted"></span></span></div>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">connect.monash.edu</div>
+            <div class="target-meta">Salesforce Aura</div>
+          </div>
+          <div><span class="tier t1">T1</span> <span class="status"><span class="dot active"></span></span></div>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">mix.monash.edu</div>
+            <div class="target-meta">MuleSoft</div>
+          </div>
+          <div><span class="tier t0">T0</span> <span class="status"><span class="dot rejected"></span> 403</span></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: All Reports -->
+<div id="reports" class="tab-content">
+  <div class="card full-width">
+    <h2><span class="icon">📋</span> All Submissions</h2>
+    <div style="overflow-x: auto;">
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Program</th>
+          <th>Target</th>
+          <th>Finding</th>
+          <th>Severity</th>
+          <th>Status</th>
+          <th>Platform</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Monash -->
+        <tr>
+          <td>Monash</td>
+          <td>identity.monash.edu <span class="tier t0">T0</span></td>
+          <td>SSPR brute force - ATO via 3-digit mobile suffix</td>
+          <td><span class="badge p1">P1-P2</span></td>
+          <td><span class="status"><span class="dot drafting"></span> Drafting</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>Monash</td>
+          <td>xnat-dev.erc.monash.edu <span class="tier t1">T1</span></td>
+          <td>Django DEBUG + brute force (410 attempts, 0 blocks)</td>
+          <td><span class="badge p2">P2-P3</span></td>
+          <td><span class="status"><span class="dot pending"></span> In triage</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>Monash</td>
+          <td>shop.monash.edu <span class="tier t2">T2</span></td>
+          <td>Stored XSS via guest cart billing address API</td>
+          <td><span class="badge p2">P2-P3</span></td>
+          <td><span class="status"><span class="dot drafting"></span> Ready</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>Monash</td>
+          <td>gitlab.erc.monash.edu <span class="tier t1">T1</span></td>
+          <td>Open reg + hardcoded DB/Tomcat creds in public repos</td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="status"><span class="dot rejected"></span> Rejected</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>Monash</td>
+          <td>xnat.monash.edu <span class="tier t1">T1</span></td>
+          <td>Open registration + CVE-2024-27889/27890</td>
+          <td><span class="badge p2">P2-P3</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted (VDP)</span></td>
+          <td>Monash VDP</td>
+        </tr>
+        <tr>
+          <td>Monash</td>
+          <td>store.erc.monash.edu <span class="tier t1">T1</span></td>
+          <td>MyTardis IDOR - user PII via sequential IDs</td>
+          <td><span class="badge p3">P3</span></td>
+          <td><span class="status"><span class="dot drafting"></span> Not submitted</span></td>
+          <td>Monash VDP</td>
+        </tr>
+        <!-- Optus -->
+        <tr>
+          <td>Optus</td>
+          <td>subhub.optus.com.au</td>
+          <td>Cognito writable attributes (name fields)</td>
+          <td><span class="badge p3">P3</span></td>
+          <td><span class="status"><span class="dot rejected"></span> Rejected</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>Optus</td>
+          <td>SubHub Cognito</td>
+          <td>CUSTOM_AUTH 2FA bypass attempt</td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="status"><span class="dot drafting"></span> Awaiting Tchan review</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>Optus</td>
+          <td>SubHub Cognito</td>
+          <td>Cognito ATO chain</td>
+          <td><span class="badge p1">P1</span></td>
+          <td><span class="status"><span class="dot rejected"></span> Rejected (P5)</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>Optus</td>
+          <td>SubHub OAuth</td>
+          <td>OAuth PKCE bypass</td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="status"><span class="dot drafting"></span> Awaiting Tchan submission</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>Optus</td>
+          <td>Various</td>
+          <td>CORS, SiteMinder, eFRAMS, CSP, etc. (Reports 1-5)</td>
+          <td><span class="badge p3">P3-P4</span></td>
+          <td><span class="status"><span class="dot rejected"></span> All rejected</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <!-- Others -->
+        <tr>
+          <td>Veriff</td>
+          <td>api.veriff.me</td>
+          <td>Session existence oracle</td>
+          <td><span class="badge p3">P3</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Awaiting triage</span></td>
+          <td>Intigriti</td>
+        </tr>
+        <tr>
+          <td>MoonPay</td>
+          <td>api.moonpay.com</td>
+          <td>CORS + SameSite=None CSRF</td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="status"><span class="dot rejected"></span> Rejected</span></td>
+          <td>HackerOne</td>
+        </tr>
+        <tr>
+          <td>Canva</td>
+          <td>partner-portal.canva.com</td>
+          <td>Unauthenticated file upload</td>
+          <td><span class="badge p3">P3</span></td>
+          <td><span class="status"><span class="dot rejected"></span> Rejected</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>SGB</td>
+          <td>smarket.sgb.co</td>
+          <td>Exposed Swagger/OpenAPI docs</td>
+          <td><span class="badge p4">P4</span></td>
+          <td><span class="status"><span class="dot drafting"></span> Not submitted</span></td>
+          <td>Direct</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Timeline -->
+<div id="timeline" class="tab-content">
+  <div class="card full-width">
+    <h2><span class="icon">📅</span> Activity Timeline</h2>
+    <ul class="timeline">
+      <li class="highlight">
+        <span class="date">Mar 6, 2026 - 8:45 PM</span>
+        <span class="event">Completed 410-attempt brute force proof on xnat-dev.erc.monash.edu. Admin login + daemon API both 0 blocks. Drafted response to ember_bugcrowd. SSL cert mismatch discovered (find.gfo.rocks).</span>
+      </li>
+      <li class="warn">
+        <span class="date">Mar 6, 2026 - 8:27 PM</span>
+        <span class="event">First constructive triager response! ember_bugcrowd asked for 400+ attempts proof instead of immediate P5 rejection.</span>
+      </li>
+      <li class="highlight">
+        <span class="date">Mar 5-6, 2026</span>
+        <span class="event">Deep dive on identity.monash.edu (Tier 0). Extracted full API map from JS bundle. Found SSPR brute force vulnerability - 1000 combos, no rate limit, no CAPTCHA. Potential P1 ATO.</span>
+      </li>
+      <li>
+        <span class="date">Mar 5, 2026</span>
+        <span class="event">Analyzed accepted bug bounty writeups. Identified pattern: IDOR, auth bypass, business logic with end-to-end proof. Pivoted strategy to depth over breadth.</span>
+      </li>
+      <li class="bad">
+        <span class="date">Mar 5, 2026 - 9:54 AM</span>
+        <span class="event">Confirmed ALL Bugcrowd submissions rejected across every program. Root cause: surface-level findings without exploitation proof.</span>
+      </li>
+      <li>
+        <span class="date">Mar 4, 2026</span>
+        <span class="event">Submitted XNAT report to Monash VDP. Optus Report 16 (CUSTOM_AUTH) partially sent. MyTardis IDOR report still pending submission.</span>
+      </li>
+      <li>
+        <span class="date">Mar 3, 2026</span>
+        <span class="event">Monash shop.monash.edu deep testing. Found stored XSS via billing address API, admin brute force, email enumeration, password reset flooding.</span>
+      </li>
+      <li>
+        <span class="date">Mar 2, 2026</span>
+        <span class="event">Monash eRC targets: gitlab (open reg + leaked creds), XNAT (open reg + CVEs), connect.monash.edu (Salesforce Aura recon).</span>
+      </li>
+      <li>
+        <span class="date">Mar 1, 2026</span>
+        <span class="event">Optus deep testing - Cognito pool, AppSync v1/v2, OAuth gateway. All blocked by Akamai/WAF.</span>
+      </li>
+      <li>
+        <span class="date">Feb 27-28, 2026</span>
+        <span class="event">Initial Optus recon, Canva partner portal, MoonPay CORS, CoinSpot CSRF, SGB Swagger, BTCMarkets. First wave of reports submitted.</span>
+      </li>
+      <li>
+        <span class="date">Feb 26, 2026</span>
+        <span class="event">Bug bounty journey started. Set up Bugcrowd, HackerOne accounts. Initial program selection.</span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB: Lessons -->
+<div id="lessons" class="tab-content">
+  <div class="card full-width">
+    <h2><span class="icon">🧠</span> Lessons Learned (The Hard Way)</h2>
+    
+    <div class="lesson">
+      <strong>Every report failed.</strong> ~24 reports across 8+ programs, 0 accepted. Optimized for quantity of surface-level findings instead of depth of exploitation.
+    </div>
+    
+    <div class="lesson">
+      <strong>PROVE exploitation end-to-end.</strong> "I found creds" is not enough - test them against live systems. Every "I could..." needs a matching "I confirmed this by..."
+    </div>
+    
+    <div class="lesson">
+      <strong>Check if behavior is by-design.</strong> Read upstream source code/docs before assuming misconfiguration. 2x P1s got triaged as P5 because behavior was intentional.
+    </div>
+    
+    <div class="lesson">
+      <strong>CORS without credentials = P5 every time.</strong> Same for config exposure, info disclosure without chaining, missing headers, SSL configs.
+    </div>
+    
+    <div class="lesson">
+      <strong>Rate conservatively.</strong> Submit as P3, let triager upgrade. A P5 hurts reputation more than a conservative P3.
+    </div>
+    
+    <div class="lesson">
+      <strong>Bugcrowd brute force standard = 400+ attempts.</strong> Must show 400+ failed attempts then a successful login to prove no silent rate limiting.
+    </div>
+    
+    <div class="lesson">
+      <strong>What actually pays:</strong> Auth bypass with demo, IDOR with real data access, RCE/SSRF with proof, business logic flaws in payment/auth flows. Not config findings.
+    </div>
+    
+    <div class="lesson">
+      <strong>Depth over breadth.</strong> Max 2 targets at a time. Go deep enough to find real logic bugs instead of spreading thin across 8 programs.
+    </div>
+
+    <div class="lesson">
+      <strong>Do NOT use em dashes in reports.</strong> Use regular hyphens or rewrite sentences instead.
+    </div>
+  </div>
+</div>
+
+<div style="text-align: center; color: var(--text-dim); font-size: 12px; margin-top: 32px; padding: 16px;">
+  ⊘ Zero - Last updated: Mar 6, 2026 9:20 PM AEDT
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
