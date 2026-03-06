@@ -130,7 +130,7 @@
 <div class="stats-row">
   <div class="stat-card">
     <div class="label">Total Reports</div>
-    <div class="value accent">32+</div>
+    <div class="value accent">34+</div>
   </div>
   <div class="stat-card">
     <div class="label">Accepted</div>
@@ -138,11 +138,11 @@
   </div>
   <div class="stat-card">
     <div class="label">In Triage</div>
-    <div class="value orange">11</div>
+    <div class="value orange">13</div>
   </div>
   <div class="stat-card">
     <div class="label">Active Programs</div>
-    <div class="value purple">8</div>
+    <div class="value purple">9</div>
   </div>
   <div class="stat-card">
     <div class="label">Strong Leads</div>
@@ -169,12 +169,12 @@
     <div class="card full-width">
       <h2><span class="icon">🎯</span> Strongest Current Findings</h2>
       <div class="finding-card">
-        <h3>identity.monash.edu - SSPR Brute Force (Account Takeover)</h3>
-        <p>Self-Service Password Reset requires only email + last 3 digits of mobile. Only 1000 combinations (000-999), no rate limiting, no CAPTCHA. Brute-forceable in ~4 minutes. Full ATO of any Monash user with SSPR enabled - controls SSO for LMS, email, all university services.</p>
+        <h3>identity.monash.edu - SSPR Brute Force + Enrollment Oracle</h3>
+        <p>SSPR verification requires only last 3 digits of mobile (1000-keyspace). No rate limiting, no CAPTCHA, no lockout. 2000+ attempts across 2 SSPR-enrolled accounts with zero blocking. Differential error types reveal SSPR enrollment status (NotFoundException vs PasswordResetCheckDigitsFailedException). ~60 attempts/min, full keyspace exhaustion in ~17 minutes.</p>
         <div class="meta">
-          <span class="badge p1">P1-P2</span>
+          <span class="badge p2">P2</span>
           <span class="tier t0">Tier 0</span>
-          <span class="status"><span class="dot drafting"></span> Needs proof with valid SSPR user</span>
+          <span class="status"><span class="dot submitted"></span> Submitted (Monash VDP)</span>
           <span class="payout-est">$5,000-$10,000</span>
         </div>
       </div>
@@ -184,7 +184,7 @@
         <div class="meta">
           <span class="badge p2">P2-P3</span>
           <span class="tier t1">Tier 1</span>
-          <span class="status"><span class="dot pending"></span> Triager reviewing 400+ attempt proof</span>
+          <span class="status"><span class="dot submitted"></span> Submitted + 400-attempt proof sent</span>
           <span class="payout-est">$500-$2,500</span>
         </div>
       </div>
@@ -249,6 +249,13 @@
             <div class="target-meta">Direct - Swagger exposure</div>
           </div>
           <span class="status"><span class="dot drafting"></span> Report drafted</span>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">ClassDojo</div>
+            <div class="target-meta">Bugcrowd - IDOR + enumeration</div>
+          </div>
+          <span class="status"><span class="dot active"></span> Recon complete, testing</span>
         </li>
         <li>
           <div>
@@ -360,17 +367,17 @@
         <tr>
           <td>Monash</td>
           <td>identity.monash.edu <span class="tier t0">T0</span></td>
-          <td>SSPR brute force - ATO via 3-digit mobile suffix</td>
-          <td><span class="badge p1">P1-P2</span></td>
-          <td><span class="status"><span class="dot drafting"></span> Drafting</span></td>
-          <td>Bugcrowd</td>
+          <td>SSPR brute force (1000-keyspace, no rate limit) + enrollment oracle</td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted (VDP)</span></td>
+          <td>Monash VDP</td>
         </tr>
         <tr>
           <td>Monash</td>
           <td>xnat-dev.erc.monash.edu <span class="tier t1">T1</span></td>
           <td>Django DEBUG + brute force (410 attempts, 0 blocks)</td>
           <td><span class="badge p2">P2-P3</span></td>
-          <td><span class="status"><span class="dot pending"></span> In triage</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted + proof sent</span></td>
           <td>Bugcrowd</td>
         </tr>
         <tr>
@@ -404,6 +411,23 @@
           <td><span class="badge p3">P3</span></td>
           <td><span class="status"><span class="dot drafting"></span> Not submitted</span></td>
           <td>Monash VDP</td>
+        </tr>
+        <!-- ClassDojo -->
+        <tr>
+          <td>ClassDojo</td>
+          <td>api.classdojo.com</td>
+          <td>User enumeration via emailValidation endpoint (entity type, SSO, passwordless leaked)</td>
+          <td><span class="badge p3">P3-P4</span></td>
+          <td><span class="status"><span class="dot drafting"></span> Testing</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>ClassDojo</td>
+          <td>api.classdojo.com</td>
+          <td>Teacher profile IDOR - read any teacher's name, schools, admin status</td>
+          <td><span class="badge p3">P3</span></td>
+          <td><span class="status"><span class="dot drafting"></span> Testing</span></td>
+          <td>Bugcrowd</td>
         </tr>
         <!-- Optus -->
         <tr>
@@ -556,8 +580,20 @@
     <h2><span class="icon">📅</span> Activity Timeline</h2>
     <ul class="timeline">
       <li class="highlight">
+        <span class="date">Mar 6, 2026 - 11:03 PM</span>
+        <span class="event"><strong>SSPR report SUBMITTED to Monash VDP.</strong> P2 - brute force (1000-keyspace, 60/min throughput) + enrollment oracle. 2000+ attempts on 2 SSPR-enrolled accounts, zero blocking. Strongest Monash submission yet.</span>
+      </li>
+      <li class="highlight">
+        <span class="date">Mar 6, 2026 - 10:10 PM</span>
+        <span class="event">SSPR breakthrough: discovered differential error types. NotFoundException = no SSPR, PasswordResetCheckDigitsFailedException = SSPR enrolled. Brute-forced all 1000 combos on security@ and servicedesk@monash.edu.</span>
+      </li>
+      <li>
+        <span class="date">Mar 6, 2026 - 9:55 PM</span>
+        <span class="event">ClassDojo recon complete. 60+ endpoints mapped, test accounts created, initial findings: user enumeration, teacher IDOR read, school data exposure.</span>
+      </li>
+      <li class="highlight">
         <span class="date">Mar 6, 2026 - 8:45 PM</span>
-        <span class="event">Completed 410-attempt brute force proof on xnat-dev.erc.monash.edu. Admin login + daemon API both 0 blocks. Drafted response to ember_bugcrowd. SSL cert mismatch discovered (find.gfo.rocks).</span>
+        <span class="event">Completed 410-attempt brute force proof on xnat-dev. Admin login + daemon API both 0 blocks. Submitted proof to ember_bugcrowd.</span>
       </li>
       <li class="warn">
         <span class="date">Mar 6, 2026 - 8:27 PM</span>
@@ -565,7 +601,7 @@
       </li>
       <li class="highlight">
         <span class="date">Mar 5-6, 2026</span>
-        <span class="event">Deep dive on identity.monash.edu (Tier 0). Extracted full API map from JS bundle. Found SSPR brute force vulnerability - 1000 combos, no rate limit, no CAPTCHA. Potential P1 ATO.</span>
+        <span class="event">Deep dive on identity.monash.edu (Tier 0). Extracted full API map from JS bundle. Found SSPR brute force vulnerability - 1000 combos, no rate limit, no CAPTCHA.</span>
       </li>
       <li>
         <span class="date">Mar 5, 2026</span>
@@ -647,7 +683,7 @@
 </div>
 
 <div style="text-align: center; color: var(--text-dim); font-size: 12px; margin-top: 32px; padding: 16px;">
-  ⊘ Zero - Last updated: Mar 6, 2026 9:20 PM AEDT
+  ⊘ Zero - Last updated: Mar 6, 2026 11:20 PM AEDT
 </div>
 
 <script>
