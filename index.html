@@ -130,7 +130,7 @@
 <div class="stats-row">
   <div class="stat-card">
     <div class="label">Total Reports</div>
-    <div class="value accent">24+</div>
+    <div class="value accent">32+</div>
   </div>
   <div class="stat-card">
     <div class="label">Accepted</div>
@@ -138,19 +138,19 @@
   </div>
   <div class="stat-card">
     <div class="label">In Triage</div>
-    <div class="value orange">3</div>
+    <div class="value orange">11</div>
   </div>
   <div class="stat-card">
     <div class="label">Active Programs</div>
-    <div class="value purple">4</div>
+    <div class="value purple">8</div>
   </div>
   <div class="stat-card">
     <div class="label">Strong Leads</div>
-    <div class="value green">2</div>
+    <div class="value green">5</div>
   </div>
   <div class="stat-card">
     <div class="label">Potential Payout</div>
-    <div class="value green">$5k-$15k</div>
+    <div class="value green">$10k-$30k</div>
   </div>
 </div>
 
@@ -198,6 +198,24 @@
           <span class="payout-est">$500-$1,500 (if accepted)</span>
         </div>
       </div>
+      <div class="finding-card" style="border-left: 3px solid var(--purple);">
+        <h3>🤖B shop.demorgen.be - Commercetools Client Secret + 369K Discount Codes</h3>
+        <p>Production client_secret exposed in frontend JS. Grants unauthenticated access to dpg-prod Commercetools project with excessive scopes (view_discount_codes, manage_my_payments, manage_my_orders). Enumerated 369,425 discount codes with plaintext values.</p>
+        <div class="meta">
+          <span class="badge p1">P1-P2</span>
+          <span class="status"><span class="dot submitted"></span> Submitted (Intigriti)</span>
+          <span class="payout-est">$1,000-$5,000</span>
+        </div>
+      </div>
+      <div class="finding-card" style="border-left: 3px solid var(--purple);">
+        <h3>🤖B secure.indeed.com - Open DCR OAuth Token Theft</h3>
+        <p>Unauthenticated Dynamic Client Registration endpoint allows registering OAuth clients with attacker-controlled redirect URIs. Full attack chain: register malicious app, phish via official Indeed consent screen, steal access tokens + PII + employer data + refresh tokens for persistent access.</p>
+        <div class="meta">
+          <span class="badge p2">P2</span>
+          <span class="status"><span class="dot submitted"></span> Submitted (Bugcrowd)</span>
+          <span class="payout-est">$2,000-$5,000</span>
+        </div>
+      </div>
     </div>
 
     <!-- Active Programs -->
@@ -231,6 +249,34 @@
             <div class="target-meta">Direct - Swagger exposure</div>
           </div>
           <span class="status"><span class="dot drafting"></span> Report drafted</span>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">🤖B DPG Media (demorgen.be)</div>
+            <div class="target-meta">Intigriti - 5 reports submitted</div>
+          </div>
+          <span class="status"><span class="dot submitted"></span> Awaiting triage</span>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">🤖B Indeed</div>
+            <div class="target-meta">Bugcrowd - OAuth DCR</div>
+          </div>
+          <span class="status"><span class="dot submitted"></span> Submitted</span>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">🤖B REA Group</div>
+            <div class="target-meta">Bugcrowd - Location leak + creds in URL</div>
+          </div>
+          <span class="status"><span class="dot submitted"></span> 2 reports</span>
+        </li>
+        <li>
+          <div>
+            <div class="target-name">🤖B SEEK</div>
+            <div class="target-meta">Bugcrowd - GraphQL introspection enabled</div>
+          </div>
+          <span class="status"><span class="dot active"></span> Recon phase</span>
         </li>
       </ul>
     </div>
@@ -432,6 +478,71 @@
           <td><span class="badge p4">P4</span></td>
           <td><span class="status"><span class="dot drafting"></span> Not submitted</span></td>
           <td>Direct</td>
+        </tr>
+        <!-- Machine B findings -->
+        <tr style="border-top: 2px solid var(--purple);">
+          <td>🤖B DPG Media</td>
+          <td>shop.demorgen.be</td>
+          <td>Commercetools client_secret exposed - 369K discount codes enumerated</td>
+          <td><span class="badge p1">P1-P2</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted</span></td>
+          <td>Intigriti</td>
+        </tr>
+        <tr>
+          <td>🤖B DPG Media</td>
+          <td>circulation.demorgen.be</td>
+          <td>Laravel Ignition debug routes in prod (CVE-2021-3129 potential RCE)</td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted</span></td>
+          <td>Intigriti</td>
+        </tr>
+        <tr>
+          <td>🤖B DPG Media</td>
+          <td>eoy.demorgen.be</td>
+          <td>User PII leak via debug config endpoint (email, name, gender, DOB)</td>
+          <td><span class="badge p2">P2-P3</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted</span></td>
+          <td>Intigriti</td>
+        </tr>
+        <tr>
+          <td>🤖B DPG Media</td>
+          <td>temptation.demorgen.be</td>
+          <td>AWS Account ID, IAM Identity, S3 bucket disclosure</td>
+          <td><span class="badge p3">P3</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted</span></td>
+          <td>Intigriti</td>
+        </tr>
+        <tr>
+          <td>🤖B DPG Media</td>
+          <td>demorgen.be (IMS)</td>
+          <td>Internal hostname enumeration via healthcheck endpoints</td>
+          <td><span class="badge p3">P3</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted</span></td>
+          <td>Intigriti</td>
+        </tr>
+        <tr>
+          <td>🤖B Indeed</td>
+          <td>secure.indeed.com</td>
+          <td>Open DCR - OAuth token theft with persistent access via refresh tokens</td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>🤖B REA Group</td>
+          <td>flatmates.com.au (staging)</td>
+          <td>Unauthenticated API exposes exact GPS coords + member IDs</td>
+          <td><span class="badge p2">P2-P3</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted</span></td>
+          <td>Bugcrowd</td>
+        </tr>
+        <tr>
+          <td>🤖B REA Group</td>
+          <td>flatmates.com.au (staging)</td>
+          <td>Plaintext password leaked in URL via Kasada bot detection redirect</td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="status"><span class="dot submitted"></span> Submitted</span></td>
+          <td>Bugcrowd</td>
         </tr>
       </tbody>
     </table>
