@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-03-07T09:37:48.284Z",
+    "lastUpdated": "2026-03-07T12:03:17.482Z",
     "updatedBy": "dashboard"
   },
   "programs": [
@@ -165,7 +165,7 @@
       "title": "Open Registration + CVE-2024-27889/27890",
       "description": "XNAT instance with open registration and known CVEs.",
       "severity": "P2-P3",
-      "status": "submitted",
+      "status": "rejected",
       "platform": "Monash VDP",
       "submittedDate": "2026-03-04",
       "machine": "a",
