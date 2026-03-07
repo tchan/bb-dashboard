@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-03-07T12:03:31.250Z",
+    "lastUpdated": "2026-03-07T12:03:41.966Z",
     "updatedBy": "dashboard"
   },
   "programs": [
@@ -258,7 +258,7 @@
       "title": "Open DCR - OAuth Token Theft with Persistent Access",
       "description": "Unauthenticated DCR endpoint allows registering OAuth clients with attacker-controlled redirect URIs. Full chain: register app, phish via consent screen, steal tokens + PII.",
       "severity": "P2",
-      "status": "submitted",
+      "status": "rejected",
       "platform": "Bugcrowd",
       "machine": "b",
       "payoutEst": "$2,000-$5,000",
