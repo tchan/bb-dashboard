@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-03-07T12:03:41.966Z",
+    "lastUpdated": "2026-03-07T12:03:47.035Z",
     "updatedBy": "dashboard"
   },
   "programs": [
@@ -281,7 +281,7 @@
       "target": "flatmates.com.au (staging)",
       "title": "Plaintext Password in URL via Kasada Bot Detection Redirect",
       "severity": "P2",
-      "status": "submitted",
+      "status": "rejected",
       "platform": "Bugcrowd",
       "machine": "b",
       "notes": []
